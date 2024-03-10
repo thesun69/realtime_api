@@ -1,0 +1,122 @@
+{
+    "address": [
+        "id",
+        "address",
+        "lat",
+        "lng",
+        "name",
+        "notes",
+        "customer_id",
+        "used",
+        "created_at"
+    ],
+    "admin": [
+        "id",
+        "username",
+        "email",
+        "password",
+        "level",
+        "token",
+        "created_at"
+    ],
+    "cart": [
+        "id",
+        "m_id",
+        "customer_id",
+        "status",
+        "qty",
+        "top_id1",
+        "top_id2",
+        "top_id3",
+        "created_at"
+    ],
+    "category": [
+        "id",
+        "cat_name",
+        "cat_img",
+        "active",
+        "created_at"
+    ],
+    "menu": [
+        "id",
+        "m_name",
+        "m_img",
+        "m_price",
+        "m_info",
+        "m_order_min",
+        "cat_id",
+        "toptype1",
+        "toptype2",
+        "toptype3",
+        "active",
+        "is_out",
+        "created_at",
+        "updated_at"
+    ],
+    "orders": [
+        "id",
+        "cart2order",
+        "delivery_fee",
+        "total",
+        "grand_total",
+        "customer_id",
+        "other_details",
+        "payMethod",
+        "payID",
+        "llm_order_id",
+        "driver_id",
+        "status",
+        "created_at",
+        "updated_at"
+    ],
+    "restaurant": [
+        "id",
+        "name",
+        "imageUrl",
+        "phone",
+        "address",
+        "lat",
+        "lng",
+        "email"
+    ],
+    "topping_type": [
+        "id",
+        "name",
+        "active",
+        "created_at"
+    ],
+    "toppings": [
+        "id",
+        "name",
+        "price",
+        "top_type_id",
+        "active",
+        "created_at"
+    ],
+    "user": [
+        "id",
+        "user_name",
+        "f_name",
+        "l_name",
+        "email",
+        "password",
+        "phone",
+        "dob",
+        "profile_img",
+        "stripe_id",
+        "token",
+        "level",
+        "created_at"
+    ],
+    "voucher": [
+        "id",
+        "voucher_code",
+        "exp_date",
+        "discount_percentage",
+        "discount_amount",
+        "min_purchase_amount",
+        "max_uses_per_user",
+        "is_active",
+        "created_at"
+    ]
+}
