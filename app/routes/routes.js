@@ -4,6 +4,12 @@ const controller = require('../controllers/controller');
 const router = express.Router();
 
 router.post('/login', controller.login);
+//==================
+router.get('/generate-qr', controller.generateQRCode);
+router.post('/verify-qr-session', controller.verifyQRCodeSession);
+router.post('/initiate-auth', controller.initiateTwoStepAuth);
+router.post('/finalize-auth', controller.finalizeAuthentication);
+//==================
 router.post('/logout', controller.logout);
 // router.get('/:tablename', verifyToken, controller.getAll);
 router.get('/:tablename', controller.getAll)

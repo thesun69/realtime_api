@@ -1,10 +1,14 @@
-const pool = require('../database/database');
-const tableColumns = require('../config/table.columns.json');
-const validTables = Object.keys(tableColumns);
+const crypto = require('crypto');
+const QRCode = require('qrcode');
+const jwt = require('jsonwebtoken');
 
 const { getIO } = require('../socket/socket');
 
-const jwt = require('jsonwebtoken');
+const pool = require('../database/database');
+
+const tableColumns = require('../config/table.columns.json');
+
+const validTables = Object.keys(tableColumns);
 
 const validateTableName = (tableName) => validTables.includes(tableName);
 
@@ -36,6 +40,79 @@ const controller = {
         } catch (error) {
             console.log(error);
             return res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    generateQRCode: async (req, res) => {
+        try {
+            // Generate a unique session ID
+            const sessionId = crypto.randomBytes(20).toString('hex');
+            const expiresAt = new Date(Date.now() + 5 * 60000);
+
+            // Generate a two-digit authentication number
+            const authNumber = Math.floor(Math.random() * 90) + 10;
+
+            // Store the session in the database
+            const sql = 'INSERT INTO sessions (session_id, expires_at, correct_number) VALUES (?, ?, ?)';
+            await pool.query(sql, [sessionId, expiresAt, authNumber]);
+
+            // Generate a QR code
+            const qrCodeURL = await QRCode.toDataURL(sessionId);
+
+            res.json({ qrCodeURL, sessionId, authNumber });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
+    verifyQRCodeSession: async (req, res) => {
+        const { sessionId } = req.body;
+        try {
+            const sql = 'SELECT * FROM sessions WHERE session_id = ? AND expires_at > NOW()';
+            const [rows] = await pool.query(sql, [sessionId]);
+            if (rows.length > 0) {
+                res.json({ valid: true });
+            } else {
+                res.status(400).json({ valid: false });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
+    initiateTwoStepAuth: async (req, res) => {
+        const { sessionId } = req.body;
+        try {
+            const numbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 90 + 10));
+
+            const correctNumber = numbers[Math.floor(Math.random() * numbers.length)];
+
+            const sql = 'UPDATE sessions SET correct_number = ? WHERE session_id = ?';
+
+            await pool.query(sql, [correctNumber, sessionId]);
+
+            res.json({ numbers });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
+    finalizeAuthentication: async (req, res) => {
+        const { sessionId, selectedNumber } = req.body;
+        try {
+            const sql = 'SELECT correct_number FROM sessions WHERE session_id = ?';
+            const [rows] = await pool.query(sql, [sessionId]);
+            if (rows.length > 0 && rows[0].correct_number == selectedNumber) {
+                res.json({ authenticated: true });
+            } else {
+                res.status(400).json({ authenticated: false });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     },
 
@@ -94,7 +171,6 @@ const controller = {
             };
 
             res.json(response);
-            // io.emit('dataFetched', response);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Internal Server Error" });
@@ -114,7 +190,6 @@ const controller = {
                 return res.status(404).json({ error: "Data not found" });
             }
             res.json(rows[0]);
-            // io.emit('dataFetched', rows[0]);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Internal Server Error" });
