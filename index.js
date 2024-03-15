@@ -2,11 +2,12 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const router = require('./app/routes/routes');
-const socketIo = require('./app/socket/socket');
+const { initSocketServer } = require('./app/socket/socket');
+
 const app = express();
 const server = http.createServer(app);
 
-const io = socketIo.init(server);
+const io = initSocketServer(server);
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -17,25 +18,20 @@ io.on('connection', (socket) => {
 
     console.log('New client connected');
 
-    const generateThreeRandomNumbers = () => {
-        let numbers = [];
-        for (let i = 0; i < 3; i++) {
-            numbers.push(Math.floor(Math.random() * 90) + 10);
-        }
-        return numbers;
-    };
-
-    const verifyNumber = async (sessionId, selectedNumber) => {
+    const verifyNumber = async (sessionId, selectedNumber, userId) => {
         return true;
     };
 
-    socket.on('qrScanned', async ({ sessionId, userId }) => {
-        const numbers = generateThreeRandomNumbers();
-        io.to(socket.id).emit('twoStepAuth', { numbers });
+    socket.on('qrScanned', async ({ sessionId }) => {
+        console.log(`QR Scanned event received with sessionId: ${sessionId}`);
+        setTimeout(() => {
+            io.to(socket.id).emit('twoStepAuth', sessionId);
+            console.log('twoStepAuth event sent to client with sessionId:', sessionId);
+        }, 1000);
     });
 
-    socket.on('numberSelected', async ({ sessionId, selectedNumber }) => {
-        const isValid = await verifyNumber(sessionId, selectedNumber);
+    socket.on('numberSelected', async ({ sessionId, selectedNumber, userId }) => {
+        const isValid = await verifyNumber(sessionId, selectedNumber, userId);
         if (isValid) {
             io.to(socket.id).emit('authSuccess', { message: 'Authentication successful' });
         } else {
@@ -48,9 +44,12 @@ io.on('connection', (socket) => {
     });
 });
 
-module.exports.io = io;
-
-const PORT = process.env.PORT || 8008;
-server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}/api/v1/user`);
+const PORT = process.env.PORT || 8010;
+server.listen(PORT, '192.168.56.1', () => {
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/user`);
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/menu`);
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/category`);
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/cart`);
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/addon`);
+    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/addon_type`);
 });

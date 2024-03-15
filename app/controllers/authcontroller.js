@@ -3,6 +3,7 @@ const QRCode = require('qrcode');
 const jwt = require('jsonwebtoken');
 
 const { getIO } = require('../socket/socket');
+
 const pool = require('../database/database');
 
 const tableColumns = require('../config/table.columns.json');
@@ -33,7 +34,7 @@ const controller = {
                     expiresIn: "7d",
                 });
 
-                return res.status(200).json({ id: user.id, token });
+                return res.status(200).json({ token });
             }
             res.status(400).send("Invalid Credentials");
         } catch (error) {
@@ -44,44 +45,38 @@ const controller = {
 
     generateQRCode: async (req, res) => {
         try {
+            // Generate a unique session ID
             const sessionId = crypto.randomBytes(20).toString('hex');
             const expiresAt = new Date(Date.now() + 5 * 60000);
+
+            // Generate a two-digit authentication number
             const authNumber = Math.floor(Math.random() * 90) + 10;
-            const otherNumber = Math.floor(Math.random() * 90) + 10;
-            const otherNumber2 = Math.floor(Math.random() * 90) + 10;
 
-            const sql = 'INSERT INTO sessions (session_id, expires_at, correct_number, other_number1, other_number2) VALUES(?, ?, ?, ?, ?)';
+            // Store the session in the database
+            const sql = 'INSERT INTO sessions (session_id, expires_at, correct_number) VALUES (?, ?, ?)';
+            await pool.query(sql, [sessionId, expiresAt, authNumber]);
 
-            await pool.query(sql, [sessionId, expiresAt, authNumber, otherNumber, otherNumber2]);
-
+            // Generate a QR code
             const qrCodeURL = await QRCode.toDataURL(sessionId);
 
-            res.json({ qrCodeURL, sessionId, authNumber, otherNumber, otherNumber2 });
+            res.json({ qrCodeURL, sessionId, authNumber });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     },
 
-    shuffleArray: array => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    },
-
-    initiateTwoStepAuth: async (req, res) => {
+    verifyQRCodeSession: async (req, res) => {
         const { sessionId } = req.body;
         try {
-            const getNumbersSql = 'SELECT correct_number, other_number1, other_number2 FROM sessions WHERE session_id = ?';
-            const [rows] = await pool.query(getNumbersSql, [sessionId]);
+            const sql = 'SELECT * FROM sessions WHERE session_id = ? AND expires_at > NOW()';
+            const [rows] = await pool.query(sql, [sessionId]);
             if (rows.length > 0) {
-                const { correct_number, other_number1, other_number2 } = rows[0];
-                let numbers = [correct_number, other_number1, other_number2];
-                controller.shuffleArray(numbers);
-                res.json({ numbers });
+                // Session is valid
+                res.json({ valid: true });
             } else {
-                res.status(400).json({ error: 'Session not found or expired' });
+                // Session is invalid or expired
+                res.status(400).json({ valid: false });
             }
         } catch (error) {
             console.error(error);
@@ -89,16 +84,35 @@ const controller = {
         }
     },
 
+    initiateTwoStepAuth: async (req, res) => {
+        const { sessionId } = req.body; // Assume the mobile app sends this after scanning the QR code
+        try {
+            const numbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 90 + 10));
+
+            const correctNumber = numbers[Math.floor(Math.random() * numbers.length)];
+
+            const sql = 'UPDATE sessions SET correct_number = ? WHERE session_id = ?';
+
+            await pool.query(sql, [correctNumber, sessionId]);
+
+            res.json({ numbers });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
     finalizeAuthentication: async (req, res) => {
-        const { sessionId, selectedNumber, userId } = req.body;
+        const { sessionId, selectedNumber } = req.body;
         try {
             const sql = 'SELECT correct_number FROM sessions WHERE session_id = ?';
             const [rows] = await pool.query(sql, [sessionId]);
             if (rows.length > 0 && rows[0].correct_number == selectedNumber) {
-                const updateSql = 'UPDATE sessions SET `user_id`= ?, verified = 1 WHERE session_id = ?';
-                await pool.query(updateSql, [userId, sessionId]);
+                // Authentication successful
+                // Update session as verified or handle user login here
                 res.json({ authenticated: true });
             } else {
+                // Authentication failed
                 res.status(400).json({ authenticated: false });
             }
         } catch (error) {
@@ -162,6 +176,7 @@ const controller = {
             };
 
             res.json(response);
+            // io.emit('dataFetched', response);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Internal Server Error" });
@@ -181,6 +196,7 @@ const controller = {
                 return res.status(404).json({ error: "Data not found" });
             }
             res.json(rows[0]);
+            // io.emit('dataFetched', rows[0]);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Internal Server Error" });

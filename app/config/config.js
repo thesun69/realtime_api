@@ -1,8 +1,8 @@
 const config =
 {
     host: "localhost",
-    username: "rootuser",
-    password: "admin@#1234",
+    username: "user",
+    password: "admin",
     database: "omc",
     port: 3306
 };

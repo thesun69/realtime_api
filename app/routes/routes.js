@@ -3,14 +3,13 @@ const controller = require('../controllers/controller');
 // const verifyToken = require('../middleware/verifyToken');
 const router = express.Router();
 
-router.post('/login', controller.login);
+router.post('/auth/login', controller.login);
 //==================
-router.get('/generate-qr', controller.generateQRCode);
-router.post('/verify-qr-session', controller.verifyQRCodeSession);
-router.post('/initiate-auth', controller.initiateTwoStepAuth);
-router.post('/finalize-auth', controller.finalizeAuthentication);
+router.get('/auth/generate-qr', controller.generateQRCode);
+router.post('/auth/initiate-auth', controller.initiateTwoStepAuth);
+router.post('/auth/finalize-auth', controller.finalizeAuthentication);
 //==================
-router.post('/logout', controller.logout);
+router.post('/auth/logout', controller.logout);
 // router.get('/:tablename', verifyToken, controller.getAll);
 router.get('/:tablename', controller.getAll)
 router.get('/:tablename/:id', controller.getById);
