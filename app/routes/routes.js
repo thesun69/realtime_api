@@ -10,8 +10,10 @@ router.post('/auth/initiate-auth', controller.initiateTwoStepAuth);
 router.post('/auth/finalize-auth', controller.finalizeAuthentication);
 //==================
 router.post('/auth/logout', controller.logout);
+//==================
+router.post('/notiall/', controller.sendNotiAll);
 // router.get('/:tablename', verifyToken, controller.getAll);
-router.get('/:tablename', controller.getAll)
+router.get('/:tablename', controller.getAll);
 router.get('/:tablename/:id', controller.getById);
 router.post('/:tablename', controller.create);
 router.patch('/:tablename/:id', controller.update);

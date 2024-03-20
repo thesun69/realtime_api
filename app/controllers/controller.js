@@ -1,11 +1,13 @@
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const jwt = require('jsonwebtoken');
-
+const admin = require('firebase-admin');
+const bodyParser = require('body-parser');
 const { getIO } = require('../socket/socket');
 const pool = require('../database/database');
 
 const tableColumns = require('../config/table.columns.json');
+const serviceAccount = require('../config/omcup-6e21e-firebase-adminsdk-m1nle-1b1da6c90c.json');
 
 const validTables = Object.keys(tableColumns);
 
@@ -16,6 +18,10 @@ const getPagination = (page, size) => {
     const offset = page ? page * limit : 0;
     return { limit, offset };
 };
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 
 const controller = {
     login: async (req, res) => {
@@ -122,16 +128,28 @@ const controller = {
             return res.status(400).json({ error: "Invalid table name" });
         }
 
-        try {
-            let sql, paginationResponse, rows, totalItems, totalPages;
-            if (req.query.pg) {
-                const page = parseInt(req.query.pg, 10) - 1;
-                const { limit, offset } = getPagination(page, 20);
-                sql = `SELECT * FROM ?? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-                [rows] = await pool.query(sql, [tableName, limit, offset]);
+        const { c, d, pg } = req.query;
 
-                const countSql = `SELECT COUNT(*) AS total FROM ??`;
-                const [totalResult] = await pool.query(countSql, [tableName]);
+        try {
+            let sql, whereClause = '', queryParams = [tableName], paginationResponse, rows, totalItems, totalPages;
+
+            if (c && d) {
+                whereClause = ' WHERE ?? = ?';
+                queryParams.push(c, d);
+            }
+
+            let baseSql = `SELECT * FROM ??${whereClause} ORDER BY created_at DESC`;
+
+            if (pg) {
+                const page = parseInt(pg, 10) - 1;
+                const { limit, offset } = getPagination(page, 20);
+                sql = `${baseSql} LIMIT ? OFFSET ?`;
+                queryParams.push(limit, offset);
+
+                [rows] = await pool.query(sql, queryParams);
+
+                const countSql = `SELECT COUNT(*) AS total FROM ??${whereClause}`;
+                const [totalResult] = await pool.query(countSql, queryParams.slice(0, queryParams.length - 2)); // Exclude limit and offset
                 totalItems = totalResult[0].total;
                 totalPages = Math.ceil(totalItems / limit);
 
@@ -142,8 +160,8 @@ const controller = {
                     pagetotal: totalPages,
                 };
             } else {
-                sql = `SELECT * FROM ?? ORDER BY created_at DESC`;
-                [rows] = await pool.query(sql, [tableName]);
+                sql = baseSql;
+                [rows] = await pool.query(sql, queryParams);
 
                 totalItems = rows.length;
                 totalPages = 1;
@@ -167,6 +185,58 @@ const controller = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
+
+    // getAll: async (req, res) => {
+    //     const tableName = req.params.tablename;
+    //     if (!validateTableName(tableName)) {
+    //         return res.status(400).json({ error: "Invalid table name" });
+    //     }
+
+    //     try {
+    //         let sql, paginationResponse, rows, totalItems, totalPages;
+    //         if (req.query.pg) {
+    //             const page = parseInt(req.query.pg, 10) - 1;
+    //             const { limit, offset } = getPagination(page, 20);
+    //             sql = `SELECT * FROM ?? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+    //             [rows] = await pool.query(sql, [tableName, limit, offset]);
+
+    //             const countSql = `SELECT COUNT(*) AS total FROM ??`;
+    //             const [totalResult] = await pool.query(countSql, [tableName]);
+    //             totalItems = totalResult[0].total;
+    //             totalPages = Math.ceil(totalItems / limit);
+
+    //             paginationResponse = {
+    //                 limit: limit,
+    //                 total: totalItems,
+    //                 page: page + 1,
+    //                 pagetotal: totalPages,
+    //             };
+    //         } else {
+    //             sql = `SELECT * FROM ?? ORDER BY created_at DESC`;
+    //             [rows] = await pool.query(sql, [tableName]);
+
+    //             totalItems = rows.length;
+    //             totalPages = 1;
+
+    //             paginationResponse = {
+    //                 limit: 0,
+    //                 total: totalItems,
+    //                 page: 0,
+    //                 pagetotal: totalPages,
+    //             };
+    //         }
+
+    //         const response = {
+    //             ...paginationResponse,
+    //             [tableName]: rows
+    //         };
+
+    //         res.json(response);
+    //     } catch (error) {
+    //         console.log(error);
+    //         res.status(500).json({ error: "Internal Server Error" });
+    //     }
+    // },
 
     getById: async (req, res) => {
         const tableName = req.params.tablename;
@@ -261,6 +331,30 @@ const controller = {
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    sendNotiAll: async (req, res) => {
+        const { title, body } = req.body;
+
+        if (!title || !body) {
+            return res.status(400).send({ success: false, message: 'Title and body are required.' });
+        }
+        const message = {
+            notification: {
+                title: title,
+                body: body
+            },
+            topic: 'all'
+        };
+
+        try {
+            const response = await admin.messaging().send(message);
+            console.log('Successfully sent message:', response);
+            res.status(200).send({ status: "Success", success: true, message: 'Notification sent successfully', response });
+        } catch (error) {
+            console.log('Error sending message:', error);
+            res.status(500).send({ status: "Failed", success: false, message: 'Failed to send notification', error });
         }
     }
 };
