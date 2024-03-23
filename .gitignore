@@ -128,3 +128,4 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+app/config/omcup-6e21e-firebase-adminsdk-m1nle-1b1da6c90c.json
