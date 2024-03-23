@@ -45,11 +45,11 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 8010;
-server.listen(PORT, '192.168.56.1', () => {
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/user`);
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/menu`);
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/category`);
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/cart`);
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/addon`);
-    console.log(`Server is running on http://192.168.56.1:${PORT}/api/v1/addon_type`);
+server.listen(PORT, '192.168.1.54', () => {
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/user`);
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/menu`);
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/category`);
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/cart`);
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/addon`);
+    console.log(`Server is running on http://192.168.1.54:${PORT}/api/v1/addon_type`);
 });
