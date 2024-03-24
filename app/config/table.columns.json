@@ -30,7 +30,13 @@
     "top_id3",
     "created_at"
   ],
-  "category": ["id", "cat_name", "cat_img", "active", "created_at"],
+  "category": [
+    "id",
+    "cat_name",
+    "cat_img",
+    "active",
+    "created_at"
+  ],
   "menu": [
     "id",
     "m_name",
@@ -59,6 +65,7 @@
     "payID",
     "llm_order_id",
     "driver_id",
+    "orderType",
     "status",
     "created_at",
     "updated_at"
@@ -73,8 +80,20 @@
     "lng",
     "email"
   ],
-  "addon": ["id", "name", "price", "top_type_id", "active", "created_at"],
-  "addon_type": ["id", "name", "active", "created_at"],
+  "addon": [
+    "id",
+    "name",
+    "price",
+    "top_type_id",
+    "active",
+    "created_at"
+  ],
+  "addon_type": [
+    "id",
+    "name",
+    "active",
+    "created_at"
+  ],
   "user": [
     "id",
     "user_name",
