@@ -1,0 +1,198 @@
+=========================================
+thesunapi.tech
+srv435125.hstgr.cloud
+
+ssh root@195.35.45.120
+fud245#@GVrg65sdsdg
+
+ssh theun@195.35.45.120
+TheSun339@#feelsogood
+=========================================
+http://195.35.45.120/phpmyadmin/
+user: root
+password: admin@#1234
+
+user: rootuser
+password: admin@#1234
+
+user: myappuser
+password: mypassword
+=========================================
+### Install Node JS ###
+sudo dnf module reset nodejs
+sudo dnf module enable nodejs:18
+sudo dnf install nodejs
+node -v
+npm -v
+=========================================
+### Install Git ###
+sudo dnf update
+sudo dnf install git
+git --version
+=========================================
+### Install phpmyadmin and MYSQL ###
+** ==== Install httpd ==== **
+sudo dnf update -y
+sudo dnf install httpd -y
+sudo systemctl start httpd
+sudo systemctl enable httpd
+** ==== Install mariadb ==== **
+sudo dnf install mariadb-server -y
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+sudo mysql_secure_installation
+** ==== Install PHP phpmyadmin ==== **
+sudo dnf install php php-mysqlnd php-fpm php-json -y
+sudo systemctl start php-fpm
+sudo systemctl enable php-fpm
+sudo nano /etc/httpd/conf.d/php.conf
+sudo systemctl restart httpd
+wget https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+tar xvf phpMyAdmin-latest-all-languages.tar.gz -C /var/www/html/
+mv /var/www/html/phpMyAdmin-*/ /var/www/html/phpmyadmin/
+cp /var/www/html/phpmyadmin/config.sample.inc.php /var/www/html/phpmyadmin/config.inc.php
+sudo nano /var/www/html/phpmyadmin/config.inc.php
+sudo chown -R apache:apache /var/www/html/phpmyadmin/
+** ==== Install FireWall ==== **
+sudo dnf install firewalld -y
+sudo systemctl start firewalld
+sudo systemctl enable firewalld
+
+sudo systemctl status firewalld
+sudo firewall-cmd --permanent --zone=public --add-service=http
+sudo firewall-cmd --reload
+=========================================
+### Add New Port [8010] ###
+sudo firewall-cmd --permanent --zone=public --add-port=8010/tcp
+sudo firewall-cmd --permanent --zone=public --add-port=8010/udp
+sudo firewall-cmd --reload
+sudo firewall-cmd --zone=public --list-all
+=========================================
+### Install an set ip for remote desktop ###
+cat /etc/os-release ; getconf LONG_BIT ; hostname ; hostname -I
+dnf -y update ; dnf groupinstall "Development Tools" -y
+sudo dnf groupinstall "Server with GUI"
+sudo dnf install epel-release
+sudo dnf install xrdp -y
+sudo systemctl enable xrdp --now ; sudo systemctl status xrdp
+sudo firewall-cmd --new-zone=xrdp --permanent
+sudo firewall-cmd --zone=xrdp --add-port=3389/tcp --permanent
+sudo firewall-cmd --zone=xrdp --add-source=192.168.1.0/24 --permanent
+sudo firewall-cmd --add-port=3389/tcp --permanent
+sudo firewall-cmd --reload
+ifconfig
+ip/hostname - 195.35.45.120
+=========================================
+### remove dir cmd ###
+rm -rf flutter-node-chat-app
+rm -i phpMyAdmin-latest-all-languages.tar.gz
+
+=========================================
+### Install PM ###
+npm install pm2@latest -g
+pm2 start npm --name $app-name -- start
+===
+### PM2 ###
+pm2 start app.js
+pm2 list
+pm2 show <process-id>
+pm2 logs <process-id>
+pm2 stop <process-id>
+pm2 restart <process-id>
+pm2 delete <process-id>
+=========================================
+
+sudo dnf update -y
+sudo dnf upgrade -y
+
+### Install SSL/TLS ###
+https://www.arubacloud.com/tutorial/how-to-configure-secure-ssl-connection-with-apache-almalinux.aspx
+
+sudo yum list --installed | grep httpd
+sudo yum install httpd
+sudo systemctl enable httpd.service
+
+** === Installing Mod SSL === **
+
+sudo yum install mod_ssl
+sudo systemctl restart httpd.service
+
+** === Creating a certificate === **
+sudo mkdir /etc/ssl/private
+sudo chmod 700 /etc/ssl/private
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
+
+** === Configuring Apache to use SSL === **
+sudo vi /etc/httpd/conf.d/iltuodominio.conf
+<VirtualHost *:443>
+ ServerName tuodominio
+ DocumentRoot /var/www/prova-ssl
+ SSLEngine on
+ SSLCertificateFile /etc/pki/tls/certs/apache-selfsigned.crt
+ SSLCertificateKeyFile /etc/pki/tls/private/apache-selfsigned.key
+</VirtualHost>
+
+sudo mkdir /var/www/prova-ssl
+sudo vi /var/www/prova-ssl/index.html
+<h1>Questa è una pagina di prova HTML</h1>
+sudo apachectl configtest
+sudo systemctl reload httpd
+
+sudo vi /etc/httpd/conf.d/nomedominio.conf
+<VirtualHost *:80>
+ ServerName nomedominio
+ Redirect / https://nomedominio/
+</VirtualHost>
+sudo apachectl configtest
+sudo systemctl reload httpd
+
+
+0 0,12 * * * /usr/bin/certbot renew --quiet
+
+=========================================
+### Git hub ###
+https://github.com/
+kuayai66@gmail.co,m
+ghn@$687d9hd
+
+###
+
+deploy token : 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
+
+git clone https://github.com/thesun69/realtime_api
+git clone https://thesun69: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@github.com/thesun69/napi
+git clone https://thesun69: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@github.com/thesun69/flutter-node-chat-app
+git clone https://thesun69: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@github.com/thesun69/realtime_api
+
+=====================
+backup orginal folder
+cp -r /var/www/html/realtime_api /var/www/html/realtime_api_backup_$(date +%Y%m%d)
+=====================
+git pull origin master
+git clone https://github.com/yourusername/yourrepository.git /var/www/html/myapi
+=====================
+sudo chown -R apache:apache /var/www/html/myapi
+sudo chmod -R 755 /var/www/html/myapi
+=====================
+sudo systemctl restart httpd
+
+=====================
+
+###
+
+Gmail
+jojojjff26@gmail.com
+password9999
+
+###
+
+const config =
+{
+    host: "localhost",
+    username: "rootuser",
+    password: "admin@#1234",
+    database: "omc",
+    port: 3306
+};
+
+module.exports = config
