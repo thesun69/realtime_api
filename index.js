@@ -1,5 +1,5 @@
 const express = require("express");
-const https = require("https");
+const http = require("http");
 const cors = require("cors");
 const router = require("./app/routes/routes");
 const fs = require("fs");
@@ -7,14 +7,7 @@ const { initSocketServer } = require("./app/socket/socket");
 
 const app = express();
 
-const httpsOptions = {
-  cert: fs.readFileSync("/etc/letsencrypt/live/srv435125.hstgr.cloud/cert.pem"),
-  key: fs.readFileSync(
-    "/etc/letsencrypt/live/srv435125.hstgr.cloud/privkey.pem"
-  ),
-};
-
-const server = https.createServer(httpsOptions, app);
+const server = http.createServer(app);
 
 const io = initSocketServer(server);
 
