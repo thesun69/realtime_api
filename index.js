@@ -1,11 +1,20 @@
 const express = require("express");
-const http = require("http");
+const https = require("https");
 const cors = require("cors");
 const router = require("./app/routes/routes");
+const fs = require("fs");
 const { initSocketServer } = require("./app/socket/socket");
 
 const app = express();
-const server = http.createServer(app);
+
+const httpsOptions = {
+  cert: fs.readFileSync("/etc/letsencrypt/live/srv435125.hstgr.cloud/cert.pem"),
+  key: fs.readFileSync(
+    "/etc/letsencrypt/live/srv435125.hstgr.cloud/privkey.pem"
+  ),
+};
+
+const server = https.createServer(httpsOptions, app);
 
 const io = initSocketServer(server);
 
@@ -50,9 +59,9 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 8010;
 
-server.listen(PORT, "192.168.1.54", () => {
+server.listen(PORT, () => {
   console.log(
-    `Server is running on http://192.168.1.54:${PORT}/api/v1/addon_type`
+    `Server is running on http://localhost:${PORT}/api/v1/addon_type`
   );
 });
 
